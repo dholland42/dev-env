@@ -38,6 +38,8 @@ COPY run.sh /opt/run.sh
 
 RUN echo "umask 002" >> $USERHOME/.zshrc
 
+WORKDIR $USERHOME
+
 ENTRYPOINT ["/bin/bash", "/opt/run.sh"]
 
 CMD ["root"]
