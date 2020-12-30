@@ -1,4 +1,6 @@
-FROM ubuntu:20.04
+ARG UBUNTU_VERSION=latest
+
+FROM ubuntu:${UBUNTU_VERSION}
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -12,14 +14,16 @@ RUN ln -s $(which python3) /usr/local/bin/python
 RUN ln -s $(which pip3) /usr/local/bin/pip
 RUN curl -fsSL -o /opt/omz.sh https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh
 RUN ZSH=/opt/.zsh sh /opt/omz.sh --unattended
-RUN cp $HOME/.zshrc /opt/.zshrc
-RUN chgrp users /opt
-RUN chmod g+w /opt
-
+RUN chsh -s /bin/zsh root
+RUN mkdir /home/users
+RUN cp $HOME/.zshrc /home/users/.zshrc
+ENV HOME="/home/users"
+RUN chgrp users /home/users
+RUN chmod g+w /home/users
 
 COPY run.sh /opt/run.sh
 
-WORKDIR /opt
+WORKDIR /home/users
 
 RUN echo "umask 002" >> .zshrc
 
