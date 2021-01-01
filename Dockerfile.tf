@@ -20,7 +20,6 @@ RUN chsh -s /bin/zsh root
 # get poetry and ignore virtual envs because we're in a container
 ENV POETRY_HOME=/opt/poetry
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-RUN /opt/poetry/bin/poetry config virtualenvs.create false
 RUN chmod a+x /opt/poetry/bin/poetry
 RUN echo 'export PATH="$PATH:/opt/poetry/bin"' >> $HOME/.zshrc
 
