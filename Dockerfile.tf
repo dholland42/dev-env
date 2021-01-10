@@ -11,6 +11,7 @@ RUN apt-get install -y sudo zsh git vim htop openssh-server less curl gnupg-agen
 # set up shared home directory users
 ENV USERHOME=/home/users
 RUN mkdir $USERHOME
+RUN echo " export HOME=$USERHOME" >> $HOME/.zshrc
 
 # zsh setup
 RUN curl -fsSL -o /opt/omz.sh https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh
@@ -22,7 +23,11 @@ ENV POETRY_HOME=/opt/poetry
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 RUN chmod a+x /opt/poetry/bin/poetry
 RUN echo 'export PATH="$PATH:/opt/poetry/bin"' >> $HOME/.zshrc
-
+RUN echo 'export XGD_CONFIG_HOME="/home/users/.config"' >> $HOME/.zshrc
+RUN mkdir -p /home/users/.config/pypoetry
+RUN echo -e "[virtualenvs]\ncreate=false" >> /home/users/.config/pypoetry/config.toml 
+RUN mkdir -p /root/.config/pypoetry
+RUN echo -e "[virtualenvs]\ncreate=false" >> /root/.config/pypoetry/config.toml 
 # set up the shared home directory
 RUN cp $HOME/.zshrc $USERHOME/.zshrc
 RUN chgrp users $USERHOME
