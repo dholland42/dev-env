@@ -1,6 +1,8 @@
-ARG NODE_VERSION=latest
+ARG UBUNTU_VERSION=latest
 
-FROM node:${NODE_VERSION}
+FROM ubuntu:${UBUNTU_VERSION}
+
+ARG NODE_VERSION=15.x
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -25,6 +27,9 @@ RUN chmod g+w $USERHOME
 COPY run.sh /opt/run.sh
 
 RUN echo "umask 002" >> $USERHOME/.zshrc
+
+RUN curl -sL https://deb.nodesource.com/setup_15.x | bash -
+RUN apt-get install -y nodejs
 
 WORKDIR $USERHOME
 
