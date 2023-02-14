@@ -101,5 +101,8 @@ ADD download-vs-code-server.sh $USERHOME
 RUN cd $USERHOME && sudo chmod a+x download-vs-code-server.sh && ./download-vs-code-server.sh
 ENV PATH=$USERHOME/.vscode-server/bin/default_version/bin:$PATH
 RUN code-server --install-extension ms-python.python
+RUN code-server --install-extension svelte.svelte-vscode
+RUN code-server --install-extension bradlc.vscode-tailwindcss
+RUN code-server --install-extension rust-lang.rust-analyzer
 
 CMD ["zsh"]
