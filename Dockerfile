@@ -1,44 +1,105 @@
-ARG UBUNTU_VERSION=latest
+ARG UBUNTU_VERSION=22.04
 
-FROM ubuntu:${UBUNTU_VERSION}
+FROM ubuntu:$UBUNTU_VERSION
+
+ARG UBUNTU_VERSION
+
+ARG USER=dev
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # general setup
-RUN apt-get update
+RUN apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade
+
 RUN apt-get install -y sudo zsh git vim htop openssh-server less curl gnupg-agent software-properties-common 
+RUN apt-get install -y \
+        make \
+        build-essential \
+        libssl-dev \
+        zlib1g-dev \
+        libbz2-dev \
+        libreadline-dev \
+        libsqlite3-dev \
+        wget \
+        curl \
+        llvm \
+        libncurses5-dev \
+        libncursesw5-dev \
+        xz-utils \
+        tk-dev \
+        libffi-dev \
+        liblzma-dev \
+        # python-openssl \
+        git \
+    && rm -rf /var/lib/apt/lists/*
 
 # set up shared home directory users
-ENV USERHOME=/home/users
+ENV USERHOME=/home/$USER
 RUN mkdir $USERHOME
+
+RUN useradd -d $USERHOME -s /bin/zsh $USER
+RUN usermod -aG sudo $USER
+RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # zsh setup
 RUN curl -fsSL -o /opt/omz.sh https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh
 RUN ZSH=/opt/.zsh sh /opt/omz.sh --unattended
 RUN chsh -s /bin/zsh root
 
-# python setup
-RUN apt-get install -y python3 python3-pip
-RUN ln -s $(which python3) /usr/local/bin/python
-RUN ln -s $(which pip3) /usr/local/bin/pip
-
-# get poetry and ignore virtual envs because we're in a container
-ENV POETRY_HOME=/opt/poetry
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-RUN chmod a+x /opt/poetry/bin/poetry
-RUN echo 'export PATH="$PATH:/opt/poetry/bin"' >> $HOME/.zshrc
-
-# set up the shared home directory
-RUN cp $HOME/.zshrc $USERHOME/.zshrc
+# set up the home directory
+RUN cp /root/.zshrc $USERHOME/.zshrc
+RUN chown -R $USER $USERHOME
 RUN chgrp users $USERHOME
 RUN chmod g+w $USERHOME
-
-COPY run.sh /opt/run.sh
-
 RUN echo "umask 002" >> $USERHOME/.zshrc
+
+USER $USER
 
 WORKDIR $USERHOME
 
-ENTRYPOINT ["/bin/bash", "/opt/run.sh"]
+# pyenv setup
+ENV PYENV_ROOT=$USERHOME/.pyenv
+ENV PATH=$PYENV_ROOT/bin:$PATH
+RUN curl https://pyenv.run | bash
+RUN echo 'eval "$(pyenv init -)"' >> $USERHOME/.zshrc
+RUN pyenv install 3.10
+RUN pyenv global 3.10
+ENV PATH=$USERHOME/.pyenv/shims:$PATH
+ENV PYENV_SHELL=zsh
 
-CMD ["root"]
+# get poetry
+ENV POETRY_HOME=$USERHOME/.poetry
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+ENV PATH=$PATH:$USERHOME/.poetry/bin
+
+# get nvm and install nodejs
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+ENV NVM_DIR=$USERHOME/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install 16 && nvm use 16
+
+# install rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
+
+# install maturin
+RUN mkdir -p $USERHOME/.local/bin
+RUN curl \
+        --proto '=https' \
+        --tlsv1.2 \
+        -sSfL \
+        -o maturin.tar.gz \
+        https://github.com/PyO3/maturin/releases/download/v0.14.10/maturin-x86_64-unknown-linux-musl.tar.gz \
+    && \
+        tar -xvf maturin.tar.gz \
+    && \
+        rm maturin.tar.gz \
+    && \
+        mv maturin $USERHOME/.local/bin
+
+ENV PATH=$PATH:$USERHOME/.local/bin
+
+ADD download-vs-code-server.sh $USERHOME
+RUN cd $USERHOME && sudo chmod a+x download-vs-code-server.sh && ./download-vs-code-server.sh
+ENV PATH=$USERHOME/.vscode-server/bin/default_version/bin:$PATH
+RUN code-server --install-extension ms-python.python
+
+CMD ["zsh"]
