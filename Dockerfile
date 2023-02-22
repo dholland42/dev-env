@@ -31,6 +31,7 @@ RUN apt-get install -y \
         liblzma-dev \
         # python-openssl \
         git \
+        tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # set up shared home directory users
@@ -52,6 +53,9 @@ RUN chown -R $USER $USERHOME
 RUN chgrp users $USERHOME
 RUN chmod g+w $USERHOME
 RUN echo "umask 002" >> $USERHOME/.zshrc
+
+# get google cloud utils
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-cli -y
 
 USER $USER
 
@@ -98,11 +102,14 @@ RUN curl \
 ENV PATH=$PATH:$USERHOME/.local/bin
 
 ADD download-vs-code-server.sh $USERHOME
+ADD .tmux.conf $USERHOME
 RUN cd $USERHOME && sudo chmod a+x download-vs-code-server.sh && ./download-vs-code-server.sh
 ENV PATH=$USERHOME/.vscode-server/bin/default_version/bin:$PATH
 RUN code-server --install-extension ms-python.python
 RUN code-server --install-extension svelte.svelte-vscode
 RUN code-server --install-extension bradlc.vscode-tailwindcss
 RUN code-server --install-extension rust-lang.rust-analyzer
+
+ENV LANG UTF-8
 
 CMD ["zsh"]
