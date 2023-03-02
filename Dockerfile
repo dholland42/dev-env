@@ -34,6 +34,9 @@ RUN apt-get install -y \
         tmux \
     && rm -rf /var/lib/apt/lists/*
 
+# cuda toolkit and cudnn for tf-gpu
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && dpkg -i cuda-keyring_1.0-1_all.deb && apt-get update && apt-get install -y cuda-toolkit-11-8 libcudnn8
+
 # set up shared home directory users
 ENV USERHOME=/home/$USER
 RUN mkdir $USERHOME
@@ -103,7 +106,7 @@ ENV PATH=$PATH:$USERHOME/.local/bin
 
 ADD download-vs-code-server.sh $USERHOME
 ADD .tmux.conf $USERHOME
-RUN cd $USERHOME && sudo chmod a+x download-vs-code-server.sh && ./download-vs-code-server.sh
+RUN cd $USERHOME && sudo chmod a+x download-vs-code-server.sh && ./download-vs-code-server.sh && rm download-vs-code-server.sh
 ENV PATH=$USERHOME/.vscode-server/bin/default_version/bin:$PATH
 RUN code-server --install-extension ms-python.python
 RUN code-server --install-extension svelte.svelte-vscode
