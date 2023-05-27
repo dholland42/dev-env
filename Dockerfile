@@ -1,6 +1,6 @@
 ARG UBUNTU_VERSION=22.04
 
-FROM ubuntu:$UBUNTU_VERSION
+FROM ubuntu:$UBUNTU_VERSION as cpu
 
 ARG UBUNTU_VERSION
 
@@ -33,9 +33,6 @@ RUN apt-get install -y \
         git \
         tmux \
     && rm -rf /var/lib/apt/lists/*
-
-# cuda toolkit and cudnn for tf-gpu
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && dpkg -i cuda-keyring_1.0-1_all.deb && apt-get update && apt-get install -y cuda-toolkit-11-8 libcudnn8
 
 # set up shared home directory users
 ENV USERHOME=/home/$USER
@@ -116,3 +113,8 @@ RUN code-server --install-extension rust-lang.rust-analyzer
 ENV LANG UTF-8
 
 CMD ["zsh"]
+
+FROM cpu as gpu
+
+# cuda toolkit and cudnn for tf-gpu
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && dpkg -i cuda-keyring_1.0-1_all.deb && apt-get update && apt-get install -y cuda-toolkit-11-8 libcudnn8
