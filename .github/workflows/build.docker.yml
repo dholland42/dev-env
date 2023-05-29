@@ -45,5 +45,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: Dockerfile
           tags: ${{ steps.meta_cpu.outputs.tags }}
+          target: cpu
           # build-args: |
           #   SERVER_VERSION=${{ env.SERVER_VERSION }}
