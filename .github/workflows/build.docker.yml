@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - *
+      - v1.*
   schedule:
     - cron: '0 0 * * *'
 
