@@ -4,7 +4,6 @@ on: workflow_dispatch
 jobs:
   docker-image-cpu:
     runs-on: ubuntu-22.04
-    if: contains(github.ref, 'v2.')
     steps:
       -
         name: Checkout repository
