@@ -1,5 +1,11 @@
 name: build-docker
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - *
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   docker-image-cpu:

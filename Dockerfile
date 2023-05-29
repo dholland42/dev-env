@@ -49,6 +49,7 @@ RUN chsh -s /bin/zsh root
 
 # set up the home directory
 RUN cp /root/.zshrc $USERHOME/.zshrc
+RUN sed -i 's/robbyrussell/half-life/g' $USERHOME/.zshrc
 RUN chown -R $USER $USERHOME
 RUN chgrp users $USERHOME
 RUN chmod g+w $USERHOME
