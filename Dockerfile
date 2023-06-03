@@ -10,7 +10,12 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # general setup
 RUN apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade
-
+RUN apt-get install -y locales
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
 RUN apt-get install -y sudo zsh git vim htop openssh-server less curl gnupg-agent software-properties-common 
 RUN apt-get install -y \
         make \
@@ -110,8 +115,6 @@ RUN code-server --install-extension ms-python.python
 RUN code-server --install-extension svelte.svelte-vscode
 RUN code-server --install-extension bradlc.vscode-tailwindcss
 RUN code-server --install-extension rust-lang.rust-analyzer
-
-ENV LANG UTF-8
 
 CMD ["zsh"]
 
