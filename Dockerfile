@@ -67,24 +67,31 @@ USER $USER
 
 WORKDIR $USERHOME
 
+ARG PYTHON_VERSION=3.11
+
 # pyenv setup
 ENV PYENV_ROOT=$USERHOME/.pyenv
 ENV PATH=$PYENV_ROOT/bin:$PATH
 RUN curl https://pyenv.run | bash
 RUN echo 'eval "$(pyenv init -)"' >> $USERHOME/.zshrc
-RUN pyenv install 3.10
-RUN pyenv global 3.10
+RUN echo $PYTHON_VERSION
+RUN pyenv install $PYTHON_VERSION
+RUN pyenv global $PYTHON_VERSION
 ENV PATH=$USERHOME/.pyenv/shims:$PATH
 ENV PYENV_SHELL=zsh
 
+# get pipx for installing command line tools
+RUN pip install pipx
+
 # get poetry
-ENV POETRY_HOME=$USERHOME/.poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH=$PATH:$USERHOME/.poetry/bin
+# ENV POETRY_HOME=$USERHOME/.poetry
+RUN pipx install poetry
+# RUN curl -sSL https://install.python-poetry.org | python3 -
+# ENV PATH=$PATH:$USERHOME/.poetry/bin
 
 # get nvm and install nodejs
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 ENV NVM_DIR=$USERHOME/.nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 RUN . "$NVM_DIR/nvm.sh" && nvm install 16 && nvm use 16
 
 # install rust
