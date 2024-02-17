@@ -67,13 +67,16 @@ USER $USER
 
 WORKDIR $USERHOME
 
+ARG PYTHON_VERSION=3.11
+
 # pyenv setup
 ENV PYENV_ROOT=$USERHOME/.pyenv
 ENV PATH=$PYENV_ROOT/bin:$PATH
 RUN curl https://pyenv.run | bash
 RUN echo 'eval "$(pyenv init -)"' >> $USERHOME/.zshrc
-RUN pyenv install 3.11
-RUN pyenv global 3.11
+RUN echo $PYTHON_VERSION
+RUN pyenv install $PYTHON_VERSION
+RUN pyenv global $PYTHON_VERSION
 ENV PATH=$USERHOME/.pyenv/shims:$PATH
 ENV PYENV_SHELL=zsh
 ENV PATH=$PATH:$USERHOME/.local/bin
@@ -89,27 +92,12 @@ RUN pipx install maturin
 # ENV PATH=$PATH:$USERHOME/.poetry/bin
 
 # get nvm and install nodejs
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 ENV NVM_DIR=$USERHOME/.nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 RUN . "$NVM_DIR/nvm.sh" && nvm install 20 && nvm use 20
 
 # install rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
-
-# # install maturin
-# RUN mkdir -p $USERHOME/.local/bin
-# RUN curl \
-#         --proto '=https' \
-#         --tlsv1.2 \
-#         -sSfL \
-#         -o maturin.tar.gz \
-#         https://github.com/PyO3/maturin/releases/download/v0.14.10/maturin-x86_64-unknown-linux-musl.tar.gz \
-#     && \
-#         tar -xvf maturin.tar.gz \
-#     && \
-#         rm maturin.tar.gz \
-#     && \
-#         mv maturin $USERHOME/.local/bin
 
 
 ADD download-vs-code-server.sh $USERHOME
