@@ -72,40 +72,45 @@ ENV PYENV_ROOT=$USERHOME/.pyenv
 ENV PATH=$PYENV_ROOT/bin:$PATH
 RUN curl https://pyenv.run | bash
 RUN echo 'eval "$(pyenv init -)"' >> $USERHOME/.zshrc
-RUN pyenv install 3.10
-RUN pyenv global 3.10
+RUN pyenv install 3.11
+RUN pyenv global 3.11
 ENV PATH=$USERHOME/.pyenv/shims:$PATH
 ENV PYENV_SHELL=zsh
+ENV PATH=$PATH:$USERHOME/.local/bin
 
-# get poetry
-ENV POETRY_HOME=$USERHOME/.poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH=$PATH:$USERHOME/.poetry/bin
+# pipx
+RUN pip install pipx
+RUN pipx install poetry
+RUN pipx install maturin
+
+# # get poetry
+# ENV POETRY_HOME=$USERHOME/.poetry
+# RUN curl -sSL https://install.python-poetry.org | python3 -
+# ENV PATH=$PATH:$USERHOME/.poetry/bin
 
 # get nvm and install nodejs
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 ENV NVM_DIR=$USERHOME/.nvm
-RUN . "$NVM_DIR/nvm.sh" && nvm install 16 && nvm use 16
+RUN . "$NVM_DIR/nvm.sh" && nvm install 20 && nvm use 20
 
 # install rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
 
-# install maturin
-RUN mkdir -p $USERHOME/.local/bin
-RUN curl \
-        --proto '=https' \
-        --tlsv1.2 \
-        -sSfL \
-        -o maturin.tar.gz \
-        https://github.com/PyO3/maturin/releases/download/v0.14.10/maturin-x86_64-unknown-linux-musl.tar.gz \
-    && \
-        tar -xvf maturin.tar.gz \
-    && \
-        rm maturin.tar.gz \
-    && \
-        mv maturin $USERHOME/.local/bin
+# # install maturin
+# RUN mkdir -p $USERHOME/.local/bin
+# RUN curl \
+#         --proto '=https' \
+#         --tlsv1.2 \
+#         -sSfL \
+#         -o maturin.tar.gz \
+#         https://github.com/PyO3/maturin/releases/download/v0.14.10/maturin-x86_64-unknown-linux-musl.tar.gz \
+#     && \
+#         tar -xvf maturin.tar.gz \
+#     && \
+#         rm maturin.tar.gz \
+#     && \
+#         mv maturin $USERHOME/.local/bin
 
-ENV PATH=$PATH:$USERHOME/.local/bin
 
 ADD download-vs-code-server.sh $USERHOME
 ADD .tmux.conf $USERHOME
@@ -116,10 +121,7 @@ RUN code-server --install-extension ms-toolsai.jupyter
 RUN code-server --install-extension svelte.svelte-vscode
 RUN code-server --install-extension bradlc.vscode-tailwindcss
 RUN code-server --install-extension rust-lang.rust-analyzer
+RUN code-server --install-extension charliermarsh.ruff
+
 
 CMD ["zsh"]
-
-FROM cpu as gpu
-
-# cuda toolkit and cudnn for tf-gpu
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && dpkg -i cuda-keyring_1.0-1_all.deb && apt-get update && apt-get install -y cuda-toolkit-11-8 libcudnn8
