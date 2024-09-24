@@ -27,7 +27,6 @@ jobs:
           images: danielholland414/dev-env
           flavor: |
             latest=true
-            suffix=-cpu
           tags: |
             type=raw,value=main
             type=semver,pattern={{version}}
@@ -51,6 +50,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: Dockerfile
           tags: ${{ steps.meta_cpu.outputs.tags }}
-          target: cpu
+          target: dev
           # build-args: |
           #   SERVER_VERSION=${{ env.SERVER_VERSION }}
